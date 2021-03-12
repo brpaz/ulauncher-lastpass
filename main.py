@@ -1,6 +1,7 @@
 """ Main Module """
 
 import logging
+import re
 
 from ulauncher.api.client.Extension import Extension
 from ulauncher.api.client.EventListener import EventListener
@@ -124,6 +125,34 @@ class ItemEnterEventListener(EventListener):
         data = event.get_data()
 
         item = extension.lp.get_item(data["id"])
+
+        if re.search("NoteType:Server", item["note"]):
+
+            hostname = re.search("(?<=Hostname:).+?(?=\n)", item["note"]).group(0)
+            username = re.search("(?<=Username:).+?(?=\n)", item["note"]).group(0)
+            password = re.search("(?<=Password:).+?(?=\n)", item["note"]).group(0)
+
+            return RenderResultListAction([
+                ExtensionSmallResultItem(
+                    icon='images/icon.png',
+                    name='Copy hostname to clipboard for %s' % item["name"],
+                    highlightable=False,
+                    on_enter=CopyToClipboardAction(hostname),
+                ),
+                ExtensionSmallResultItem(
+                    icon='images/icon.png',
+                    name='Copy username to clipboard for %s' % item["name"],
+                    highlightable=False,
+                    on_enter=CopyToClipboardAction(username),
+                ),
+                ExtensionSmallResultItem(
+                    icon='images/icon.png',
+                    name='Copy password to clipboard for %s' % item["name"],
+                    highlightable=False,
+                    on_enter=CopyToClipboardAction(password),
+                )
+            ])
+            
 
         if item["is_note"]:
             return RenderResultListAction([
